@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Progress Kualitas Data</title>
+    <link rel="stylesheet" href="pkbu.css" />
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Menu utama">
+      <div class="sidebar-title">Data Quality</div>
+      <nav>
+        <a href="index.html"><span class="nav-icon">▦</span>Summary</a>
+        <a class="active" href="progress.html"><span class="nav-icon">↗</span>IGI : Kualitas Data</a>
+        <a href="kpi-nik.html"><span class="nav-icon">−</span>KPI : NIK Invalid Pengurang</a>
+        <div class="nav-group">Profiling</div>
+        <a href="pkbu.html"><span class="nav-icon">◈</span>PKBU</a>
+        <a href="tk.html"><span class="nav-icon">●</span>TK Aktif</a>
+        <a href="tk-na.html"><span class="nav-icon">○</span>TK NA</a>
+      </nav>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Progress</p>
+        <h1>Progress Update Kualitas Data</h1>
+        <p id="progressSourceNote" class="source-note">Membaca spreadsheet KUALITAS DATA 2026.</p>
+      </div>
+      <div class="upload-box summary-actions">
+        <div id="progressMeta" class="upload-meta">Menunggu data spreadsheet.</div>
+        <section class="toolbar progress-filterbar" aria-label="Filter progress">
+          <label>
+            Cabang
+            <select id="progressOfficeFilter"></select>
+          </label>
+          <label>
+            Indikator
+            <select id="progressMetricFilter"></select>
+          </label>
+          <button id="resetProgressFilters" type="button">Reset</button>
+        </section>
+      </div>
+    </header>
+
+    <main class="layout progress-layout">
+      <section class="progress-grid">
+        <article class="panel trend-panel">
+          <div class="panel-head trend-head">
+            <div>
+              <h2>Trend Capaian per Parameter</h2>
+              <p id="trendSubtitle">Mengikuti filter kantor; pilih rentang tanggal untuk melihat pergerakan capaian.</p>
+            </div>
+            <div class="trend-filters">
+              <label>
+                Dari
+                <input id="trendStartDate" type="date" />
+              </label>
+              <label>
+                Sampai
+                <input id="trendEndDate" type="date" />
+              </label>
+            </div>
+          </div>
+          <div id="trendCards" class="trend-cards"></div>
+        </article>
+
+        <article class="panel igi-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Progress IGI per Indikator</h2>
+              <p id="igiSubtitle">Beban, awal, realisasi, persen, dan nilai mengikuti filter aktif.</p>
+            </div>
+          </div>
+          <div id="igiCards" class="progress-cards"></div>
+        </article>
+      </section>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Tabel Progress Kantor</h2>
+            <p id="progressTableSubtitle">Data IGI per kantor pada tanggal update terpilih.</p>
+          </div>
+          <select id="progressOfficeModeFilter" aria-label="Mode kantor tabel">
+            <option value="ALL">Semua</option>
+            <option value="MAIN">Cabang Induk</option>
+            <option value="KCP">KCP</option>
+          </select>
+          <div id="progressMetricColumns" class="check-dropdown table-column-filter">
+            <button id="progressMetricColumnsButton" class="check-dropdown-button" type="button">Semua Parameter</button>
+            <div id="progressMetricColumnsMenu" class="check-dropdown-menu" hidden></div>
+          </div>
+          <div id="progressComponentColumns" class="check-dropdown table-column-filter">
+            <button id="progressComponentColumnsButton" class="check-dropdown-button" type="button">Semua Agregat</button>
+            <div id="progressComponentColumnsMenu" class="check-dropdown-menu" hidden></div>
+          </div>
+          <input id="progressSearchInput" type="search" placeholder="Cari kantor..." />
+          <button id="downloadProgressTableCsv" class="icon-button" type="button" title="Download tabel progress sebagai CSV" aria-label="Download tabel progress sebagai CSV">CSV</button>
+          <button id="downloadProgressTableJpg" class="icon-button" type="button" title="Download tabel progress sebagai JPG" aria-label="Download tabel progress sebagai JPG">JPG</button>
+        </div>
+        <div id="progressTableCapture" class="table-wrap progress-table-wrap">
+          <table>
+            <thead id="progressTableHead"></thead>
+            <tbody id="progressTableBody"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Resume Per Parameter</h2>
+            <p id="parameterResumeSubtitle">Ringkasan quick win dari tabel progress per cabang dan KCP.</p>
+          </div>
+          <button id="copyParameterResume" class="icon-button" type="button" title="Copy resume" aria-label="Copy resume">Copy</button>
+        </div>
+        <div id="parameterResume" class="parameter-resume"></div>
+      </article>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="sidebar.js"></script>
+    <script src="progress.js"></script>
+  </body>
+</html>

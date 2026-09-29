@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Insight Wilayah</title>
+    <link rel="stylesheet" href="pkbu.css" />
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Menu utama">
+      <div class="sidebar-title">Data Quality</div>
+      <nav></nav>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Insight Wilayah</p>
+        <h1>Monitoring Posisi Kanwil Jateng DIY</h1>
+        <p id="wilayahSourceNote" class="source-note">Membaca sheet Progres untuk memantau posisi antar wilayah.</p>
+      </div>
+      <div class="upload-box summary-actions">
+        <div id="wilayahMeta" class="upload-meta">Menunggu data sheet Progres.</div>
+        <section class="toolbar progress-filterbar wilayah-filterbar" aria-label="Filter insight wilayah">
+          <label>
+            Indikator
+            <select id="wilayahMetricFilter"></select>
+          </label>
+          <div class="filter-field">
+            <span>Wilayah Pembanding</span>
+            <details id="wilayahCompetitorDropdown" class="checkbox-dropdown">
+              <summary id="wilayahCompetitorSummary">Semua Wilayah</summary>
+              <div id="wilayahCompetitorOptions" class="checkbox-menu"></div>
+            </details>
+          </div>
+        </section>
+      </div>
+    </header>
+
+    <main class="layout wilayah-layout">
+      <section id="wilayahCards" class="executive-cards"></section>
+
+      <section class="wilayah-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Trend Posisi Wilayah</h2>
+              <p id="wilayahTrendSubtitle">Trend poin Kanwil 905 dibanding pesaing terdekat.</p>
+            </div>
+          </div>
+          <div id="wilayahTrendChart" class="wilayah-chart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Insight Kompetitor</h2>
+              <p id="wilayahInsightSubtitle">Membaca risiko Jateng DIY tersalip kompetitor.</p>
+            </div>
+          </div>
+          <div id="wilayahInsight" class="wilayah-insight"></div>
+        </article>
+      </section>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Perbandingan Progres Harian</h2>
+            <p id="wilayahDailySubtitle">Membandingkan update terakhir dengan tanggal sebelumnya.</p>
+          </div>
+          <div class="daily-date-filters" aria-label="Filter rentang progres harian">
+            <label class="compact-filter date-filter">
+              <span>Dari</span>
+              <input id="wilayahDailyDateFrom" type="date" />
+            </label>
+            <label class="compact-filter date-filter">
+              <span>Sampai</span>
+              <input id="wilayahDailyDateTo" type="date" />
+            </label>
+            <button id="wilayahDailyDateReset" class="icon-button tiny-export" type="button" title="Reset rentang tanggal" aria-label="Reset rentang tanggal">Reset</button>
+          </div>
+          <button id="printDailyPdf" class="icon-button tiny-export" type="button" title="Cetak tabel sebagai PDF" aria-label="Cetak tabel perbandingan sebagai PDF">PDF</button>
+        </div>
+        <div class="table-wrap wilayah-daily-wrap">
+          <table>
+            <thead id="wilayahDailyHead"></thead>
+            <tbody id="wilayahDailyBody"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Progress Cabang Jateng DIY</h2>
+            <p id="wilayahBranchSubtitle">Monitoring cabang dengan kode L pada Kanwil Jateng DIY.</p>
+          </div>
+          <label class="compact-filter">
+            <span>Kategori</span>
+            <select id="wilayahBranchCategoryFilter">
+              <option value="all">Semua</option>
+              <option value="cabang">Cabang Induk</option>
+              <option value="kcp">KCP</option>
+            </select>
+          </label>
+          <div class="daily-date-filters branch-date-filters" aria-label="Filter rentang progress cabang">
+            <label class="compact-filter date-filter">
+              <span>Dari</span>
+              <input id="wilayahBranchDateFrom" type="date" />
+            </label>
+            <label class="compact-filter date-filter">
+              <span>Sampai</span>
+              <input id="wilayahBranchDateTo" type="date" />
+            </label>
+            <button id="wilayahBranchDateReset" class="icon-button tiny-export" type="button" title="Reset rentang tanggal cabang" aria-label="Reset rentang tanggal cabang">Reset</button>
+          </div>
+          <button id="printBranchPdf" class="icon-button tiny-export" type="button" title="Cetak tabel sebagai PDF" aria-label="Cetak tabel cabang sebagai PDF">PDF</button>
+        </div>
+        <div class="table-wrap wilayah-table-wrap">
+          <table>
+            <thead id="wilayahBranchHead"></thead>
+            <tbody id="wilayahBranchBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="sidebar.js"></script>
+    <script src="wilayah.js"></script>
+  </body>
+</html>

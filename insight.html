@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Insight Kualitas Data</title>
+    <link rel="stylesheet" href="pkbu.css" />
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Menu utama">
+      <div class="sidebar-title">Data Quality</div>
+      <nav></nav>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Insight</p>
+        <h1>Insight Kualitas Data IGI dan KPI</h1>
+        <p id="insightSourceNote" class="source-note">Membaca spreadsheet IGI dan KPI NIK invalid.</p>
+      </div>
+      <div class="upload-box summary-actions">
+        <button id="refreshInsight" type="button">Refresh Insight</button>
+        <div id="insightMeta" class="upload-meta">Menunggu data spreadsheet.</div>
+      </div>
+    </header>
+
+    <main class="layout insight-layout">
+      <section id="insightCards" class="insight-executive-cards"></section>
+
+      <section class="insight-two-col">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Analisis IGI</h2>
+              <p id="igiInsightSubtitle">Pergerakan score dan sisa beban kualitas data.</p>
+            </div>
+          </div>
+          <div id="igiInsightPanel" class="insight-panel-body"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Analisis KPI NIK Invalid</h2>
+              <p id="kpiInsightSubtitle">Pengurang KPI semakin baik jika mendekati 0.</p>
+            </div>
+          </div>
+          <div id="kpiInsightPanel" class="insight-panel-body"></div>
+        </article>
+      </section>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Quick Win Gabungan</h2>
+            <p>Prioritas yang paling cepat menaikkan IGI dan menekan pengurang KPI.</p>
+          </div>
+        </div>
+        <div id="quickWinInsight" class="insight-panel-body"></div>
+      </article>
+
+      <section class="insight-two-col">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Target IGI Paling Berdampak</h2>
+              <p>Urut berdasarkan ruang tambahan poin dan sisa beban.</p>
+            </div>
+          </div>
+          <div id="igiTargetTables" class="insight-panel-body"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Score Pengurang KPI</h2>
+              <p>Terbaik paling mendekati 0, terjelek paling negatif.</p>
+            </div>
+          </div>
+          <div id="kpiRankTables" class="insight-panel-body"></div>
+        </article>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="sidebar.js"></script>
+    <script src="insight.js"></script>
+  </body>
+</html>

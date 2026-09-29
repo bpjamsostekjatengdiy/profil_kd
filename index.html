@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Summary Kualitas Data</title>
+    <link rel="stylesheet" href="pkbu.css" />
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Menu utama">
+      <div class="sidebar-title">Data Quality</div>
+      <nav>
+        <a class="active" href="index.html"><span class="nav-icon">▦</span>Summary</a>
+        <a href="progress.html"><span class="nav-icon">↗</span>IGI : Kualitas Data</a>
+        <a href="kpi-nik.html"><span class="nav-icon">−</span>KPI : NIK Invalid Pengurang</a>
+        <div class="nav-group">Profiling</div>
+        <a href="pkbu.html"><span class="nav-icon">◈</span>PKBU</a>
+        <a href="tk.html"><span class="nav-icon">●</span>TK Aktif</a>
+        <a href="tk-na.html"><span class="nav-icon">○</span>TK NA</a>
+      </nav>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Summary</p>
+        <h1>Summary Kualitas Data Kanwil Jateng dan DIY</h1>
+        <p id="summarySourceNote" class="source-note">Membaca data temporary dari halaman profiling.</p>
+      </div>
+      <div class="upload-box summary-actions">
+        <button id="downloadPdf" type="button">Download PDF</button>
+        <button id="refreshSummary" type="button">Refresh Summary</button>
+        <div id="summaryMeta" class="upload-meta">Data akan muncul setelah masing-masing halaman profiling di-upload.</div>
+      </div>
+    </header>
+
+    <main class="layout summary-layout">
+      <article class="panel summary-kpi-section">
+        <div class="panel-head">
+          <div>
+            <h2>KPI NIK Invalid Pengurang</h2>
+            <p id="summaryKpiSubtitle">Membaca sheet KPI untuk analisis pengurang NIK invalid.</p>
+          </div>
+        </div>
+        <div id="summaryKpiPanel" class="summary-kpi-panel">
+          <div class="summary-empty">Memuat analisis KPI NIK invalid...</div>
+        </div>
+      </article>
+      <article class="panel summary-heatmap-section">
+        <div class="panel-head">
+          <div>
+            <h2>Heatmap Sisa Beban KPI dan IGI</h2>
+            <p id="summaryHeatmapSubtitle">Membaca sisa beban cabang induk dan KCP.</p>
+          </div>
+        </div>
+        <div id="summaryHeatmapPanel" class="summary-heatmap-panel">
+          <div class="summary-empty">Memuat heatmap sisa beban...</div>
+        </div>
+      </article>
+      <section id="summarySections" class="summary-sections"></section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="sidebar.js"></script>
+    <script src="summary.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Profiling TK Pemadanan</title>
+    <link rel="stylesheet" href="pkbu.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Menu utama">
+      <div class="sidebar-title">Data Quality</div>
+      <nav></nav>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Profiling TK Pemadanan</p>
+        <h1>Kualitas Data: Pemadanan TK Aktif Baru Kanwil Jateng dan DIY</h1>
+        <p id="sourceNote" class="source-note">Upload data pemadanan TK untuk mulai profiling.</p>
+      </div>
+      <div class="upload-box">
+        <input id="fileInput" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" />
+        <button id="clearData" class="icon-button danger" type="button" aria-label="Hapus Data" title="Hapus Data">x</button>
+        <div id="uploadMeta" class="upload-meta">Belum ada data tersimpan.</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="toolbar" aria-label="Filter data pemadanan">
+        <label>
+          Cabang
+          <select id="branchFilter"></select>
+        </label>
+        <label>
+          Segmen
+          <select id="segmentFilter"></select>
+        </label>
+        <label>
+          Status TK
+          <select id="tkBaruFilter">
+            <option value="ALL">Semua TK</option>
+            <option value="1">TK Baru</option>
+            <option value="0">TK Lama</option>
+          </select>
+        </label>
+        <label>
+          Pesan Pemadanan
+          <select id="messageFilter"></select>
+        </label>
+        <button id="resetFilters" type="button">Reset</button>
+      </section>
+
+      <section class="kpis" aria-label="Ringkasan pemadanan">
+        <article>
+          <span>Total Beban Pemadanan</span>
+          <strong id="kpiTotal">-</strong>
+        </article>
+        <article>
+          <span>TK Baru</span>
+          <strong id="kpiNew">-</strong>
+        </article>
+        <article>
+          <span>TK Lama</span>
+          <strong id="kpiOld">-</strong>
+        </article>
+        <article>
+          <span>Cabang Terbesar</span>
+          <strong id="kpiTopBranch">-</strong>
+        </article>
+        <article>
+          <span>Pesan Dominan</span>
+          <strong id="kpiTopMessage">-</strong>
+        </article>
+      </section>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Insight Pemadanan</h2>
+            <p id="insightSubtitle">Mengikuti filter aktif.</p>
+          </div>
+        </div>
+        <div id="insightPanel" class="insights insight-grid"></div>
+      </article>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Beban Pemadanan per Cabang</h2>
+              <p id="branchSubtitle">Menunggu data.</p>
+            </div>
+          </div>
+          <div id="branchBars" class="bars"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Pesan Pemadanan Terbanyak</h2>
+              <p id="messageSubtitle">Agregasi mengikuti filter aktif.</p>
+            </div>
+          </div>
+          <div id="messageBars" class="bars"></div>
+        </article>
+      </section>
+
+      <section class="detail-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Beban per Pembina</h2>
+              <p id="pembinaSubtitle">Pembina dengan data pemadanan terbanyak.</p>
+            </div>
+          </div>
+          <div id="pembinaPanel" class="bars"></div>
+        </article>
+
+        <article class="panel preview-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Preview Data Terfilter</h2>
+              <p id="tableSubtitle">Semua baris terfilter ditampilkan dengan paginasi.</p>
+            </div>
+            <button id="downloadFiltered" type="button">Download CSV</button>
+            <input id="searchInput" type="search" placeholder="Cari NPP, KPJ, NIK, nama..." />
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="previewHead"></thead>
+              <tbody id="previewBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <button id="prevPage" type="button">Sebelumnya</button>
+            <span id="pageInfo">Halaman 1</span>
+            <button id="nextPage" type="button">Berikutnya</button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="sidebar.js"></script>
+    <script src="tk-pemadanan.js"></script>
+  </body>
+</html>

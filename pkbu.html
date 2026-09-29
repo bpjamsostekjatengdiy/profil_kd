@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Profiling Elemen NOT GOOD PKBU</title>
+    <link rel="stylesheet" href="pkbu.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <aside class="sidebar" aria-label="Menu utama">
+      <div class="sidebar-title">Data Quality</div>
+      <nav>
+        <a href="index.html"><span class="nav-icon">▦</span>Summary</a>
+        <a href="progress.html"><span class="nav-icon">↗</span>IGI : Kualitas Data</a>
+        <a href="kpi-nik.html"><span class="nav-icon">−</span>KPI : NIK Invalid Pengurang</a>
+        <div class="nav-group">Profiling</div>
+        <a class="active" href="pkbu.html"><span class="nav-icon">◈</span>PKBU</a>
+        <a href="tk.html"><span class="nav-icon">●</span>TK Aktif</a>
+        <a href="tk-na.html"><span class="nav-icon">○</span>TK NA</a>
+      </nav>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Profiling PKBU</p>
+        <h1>Kualitas Data: Kelengkapan PKBU Kanwil Jateng dan DIY</h1>
+        <p id="sourceNote" class="source-note">Upload data PKBU untuk mulai profiling.</p>
+      </div>
+      <div class="upload-box">
+        <input id="fileInput" type="file" accept=".csv,.tsv,.txt,.xlsx,.xls" />
+        <button id="downloadPdf" class="icon-button" type="button" aria-label="Download PDF" title="Download PDF">PDF</button>
+        <button id="clearData" class="icon-button danger" type="button" aria-label="Hapus Data" title="Hapus Data">×</button>
+        <label class="mode-switch" title="Aktifkan sebelum upload ulang file PKBU">
+          <input id="pkbuBurdenMode" type="checkbox" />
+          <span>Mode beban JML</span>
+        </label>
+        <div id="uploadMeta" class="upload-meta">Belum ada data tersimpan.</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="toolbar" aria-label="Filter data">
+        <label>
+          Kanwil
+          <select id="kanwilFilter"></select>
+        </label>
+        <label>
+          Cabang
+          <select id="cabangFilter"></select>
+        </label>
+        <label>
+          Elemen
+          <select id="elemenFilter"></select>
+        </label>
+        <label>
+          Filter Tambahan
+          <select id="extraColumnFilter"></select>
+        </label>
+        <label>
+          Nilai Filter
+          <select id="extraValueFilter"></select>
+        </label>
+        <button id="resetFilters" type="button">Reset</button>
+      </section>
+
+      <section class="kpis" aria-label="Ringkasan PKBU">
+        <article>
+          <span>Total Elemen NOT GOOD</span>
+          <strong id="kpiTotal">-</strong>
+        </article>
+        <article>
+          <span>NPP Bermasalah</span>
+          <strong id="kpiRows">-</strong>
+        </article>
+        <article>
+          <span>Cabang Terbesar</span>
+          <strong id="kpiTopCabang">-</strong>
+        </article>
+        <article>
+          <span>Elemen Mayoritas</span>
+          <strong id="kpiTopElemen">-</strong>
+        </article>
+      </section>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Insight</h2>
+            <p id="filteredSubtitle">Kanwil 905 jika tidak ada filter cabang; mengikuti filter jika filter aktif.</p>
+          </div>
+        </div>
+        <div id="filteredInsights" class="insights insight-grid"></div>
+      </article>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Tabel NOT GOOD per Cabang dan Elemen</h2>
+              <p id="cabangSubtitle">Menunggu data.</p>
+            </div>
+          </div>
+          <div id="branchBars" class="bars"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Total NOT GOOD per Elemen</h2>
+              <p id="elemenSubtitle">Agregasi mengikuti filter aktif.</p>
+            </div>
+          </div>
+          <div id="elementBars" class="bars"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Beban PKBU per Pembina</h2>
+              <p id="pembinaSubtitle">Pembina dengan total elemen PKBU invalid terbanyak.</p>
+            </div>
+            <input id="pembinaSearchInput" type="search" placeholder="Filter pembina..." />
+          </div>
+          <div id="pembinaPanel" class="pembina-panel"></div>
+        </article>
+      </section>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Preview Data Terfilter</h2>
+            <p id="tableSubtitle">Semua baris terfilter ditampilkan dengan paginasi.</p>
+          </div>
+          <button id="downloadFiltered" type="button">Download CSV</button>
+          <select id="previewElementFilter" aria-label="Filter elemen preview"></select>
+          <input id="searchInput" type="search" placeholder="Cari data..." />
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead id="previewHead"></thead>
+            <tbody id="previewBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button id="prevPage" type="button">Sebelumnya</button>
+          <span id="pageInfo">Halaman 1</span>
+          <button id="nextPage" type="button">Berikutnya</button>
+        </div>
+      </article>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script>
+      window.PROFILER_CONFIG = {
+        storageKey: "pkbuProfiler.activeData.v1",
+        subject: "PKBU",
+        emptySourceText: "Upload data PKBU untuk mulai profiling.",
+      };
+    </script>
+    <script src="sidebar.js"></script>
+    <script src="pkbu.js"></script>
+  </body>
+</html>
+

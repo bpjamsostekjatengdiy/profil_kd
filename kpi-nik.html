@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TK NIK Invalid Pengurang KPI</title>
+    <link rel="stylesheet" href="pkbu.css" />
+  </head>
+  <body class="kpi-nik-page">
+    <aside class="sidebar" aria-label="Menu utama">
+      <div class="sidebar-title">Data Quality</div>
+      <nav>
+        <a href="index.html"><span class="nav-icon">▦</span>Summary</a>
+        <a href="progress.html"><span class="nav-icon">↗</span>IGI : Kualitas Data</a>
+        <a class="active" href="kpi-nik.html"><span class="nav-icon">−</span>KPI : NIK Invalid Pengurang</a>
+        <div class="nav-group">Profiling</div>
+        <a href="pkbu.html"><span class="nav-icon">◈</span>PKBU</a>
+        <a href="tk.html"><span class="nav-icon">●</span>TK Aktif</a>
+        <a href="tk-na.html"><span class="nav-icon">○</span>TK NA</a>
+      </nav>
+    </aside>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">KPI NIK</p>
+        <h1>TK NIK Invalid - Pengurang KPI</h1>
+        <p id="nikSourceNote" class="source-note">Membaca sheet KPI dari spreadsheet kualitas data.</p>
+      </div>
+      <div class="upload-box summary-actions">
+        <div id="nikMeta" class="upload-meta">Menunggu data KPI.</div>
+        <section class="toolbar progress-filterbar" aria-label="Filter KPI NIK">
+          <label>
+            Cabang
+            <select id="nikOfficeFilter"></select>
+          </label>
+          <label>
+            Segmen
+            <select id="nikSegmentFilter">
+              <option value="ALL">Semua Segmen</option>
+              <option value="PU">PU</option>
+              <option value="BPU">BPU</option>
+            </select>
+          </label>
+          <label>
+            Jenis TK
+            <select id="nikTkTypeFilter">
+              <option value="ALL">Semua TK</option>
+              <option value="NEW">TK Baru</option>
+              <option value="OLD">TK Lama</option>
+            </select>
+          </label>
+          <button id="resetNikFilters" type="button">Reset</button>
+        </section>
+      </div>
+    </header>
+
+    <main class="layout progress-layout">
+      <section class="kpis">
+        <article>
+          <span>Pengurang KPI Terakhir</span>
+          <strong id="nikLatestValue">-</strong>
+          <small id="nikLatestValueProgress" class="kpi-progress neutral">-</small>
+        </article>
+        <article>
+          <span>Total Beban</span>
+          <strong id="nikLatestInvalid">-</strong>
+          <small id="nikLatestInvalidProgress" class="kpi-progress neutral">-</small>
+        </article>
+        <article>
+          <span>TK Baru</span>
+          <strong id="nikNewInvalid">-</strong>
+          <small id="nikNewInvalidProgress" class="kpi-progress neutral">-</small>
+        </article>
+        <article>
+          <span>TK Lama</span>
+          <strong id="nikOldInvalid">-</strong>
+          <small id="nikOldInvalidProgress" class="kpi-progress neutral">-</small>
+        </article>
+      </section>
+
+      <section class="progress-grid">
+        <article class="panel trend-panel">
+          <div class="panel-head trend-head">
+            <div>
+              <h2>Trend Pengurang KPI NIK Invalid</h2>
+              <p id="nikTrendSubtitle">Nilai mendekati 0 berarti NIK invalid makin sedikit.</p>
+            </div>
+          </div>
+          <div id="nikTrendPanel" class="trend-cards"></div>
+          <div id="nikTrendResume" class="trend-resume"></div>
+        </article>
+
+        <article class="panel igi-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Insight Quick Win</h2>
+              <p id="nikInsightSubtitle">Analisis prioritas percepatan menuju 0.</p>
+            </div>
+          </div>
+          <div id="nikInsightPanel" class="parameter-resume"></div>
+        </article>
+      </section>
+
+      <article class="panel movement-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Analisis Pergerakan KPI</h2>
+            <p id="nikMovementSubtitle">Penyebab perubahan dari update sebelumnya.</p>
+          </div>
+        </div>
+        <div id="nikMovementPanel" class="movement-analysis"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Tabel NIK Invalid per Kantor</h2>
+            <p id="nikTableSubtitle">Data latest dari sheet KPI.</p>
+          </div>
+          <div class="table-panel-actions">
+            <label>
+              Mode Tabel
+              <select id="nikOfficeModeFilter">
+                <option value="ALL">Semua</option>
+                <option value="MAIN">Cabang Induk</option>
+                <option value="KCP">KCP</option>
+              </select>
+            </label>
+            <label>
+              Cari Kantor
+              <div id="nikOfficeChecklist" class="check-dropdown">
+                <button id="nikOfficeChecklistButton" class="check-dropdown-button" type="button">Semua Kantor</button>
+                <div id="nikOfficeChecklistMenu" class="check-dropdown-menu" hidden></div>
+              </div>
+            </label>
+            <button id="downloadNikCsv" class="icon-button" type="button" title="Download CSV" aria-label="Download CSV">CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap progress-table-wrap">
+          <table>
+            <thead id="nikTableHead"></thead>
+            <tbody id="nikTableBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="sidebar.js"></script>
+    <script src="kpi-nik.js"></script>
+  </body>
+</html>

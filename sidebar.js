@@ -26,6 +26,7 @@ const sidebarGroups = [
       { href: "tk.html", icon: "userCheck", label: "TK Aktif" },
       { href: "tk-na.html", icon: "userMinus", label: "TK NA" },
       { href: "tk-pemadanan.html", icon: "match", label: "TK Pemadanan" },
+      { href: "gerakan_pemadanan.html", icon: "match", label: "Gerakan Pemadanan" },
     ],
   },
 ];

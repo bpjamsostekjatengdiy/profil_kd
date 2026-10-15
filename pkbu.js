@@ -12,9 +12,10 @@ const state = {
   columns: [],
   mapping: {},
   kanwil: "905",
-  cabang: "ALL",
+  cabang: profilerConfig.requireBranchSelection ? "NONE" : "ALL",
   segment: "ALL",
   elemen: "ALL",
+  branchPembina: "ALL",
   extraColumn: "NONE",
   extraValue: "ALL",
   previewElement: "ALL",
@@ -68,6 +69,7 @@ const els = {
   resetFilters: document.querySelector("#resetFilters"),
   kpiTotal: document.querySelector("#kpiTotal"),
   kpiRows: document.querySelector("#kpiRows"),
+  kpiPkbu: document.querySelector("#kpiPkbu"),
   kpiTopCabang: document.querySelector("#kpiTopCabang"),
   kpiTopElemen: document.querySelector("#kpiTopElemen"),
   cabangSubtitle: document.querySelector("#cabangSubtitle"),
@@ -536,6 +538,7 @@ function uniqueValues(rows, column) {
 }
 
 function setOptions(select, options, selectedValue) {
+  if (!select) return;
   select.innerHTML = options
     .map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === selectedValue ? "selected" : ""}>${escapeHtml(option.label)}</option>`)
     .join("");
@@ -564,16 +567,21 @@ function baselineRows905() {
 }
 
 function filteredRows() {
-  const { kanwil, cabang, segment, elemen, extraColumn, extraValue } = state;
+  if (profilerConfig.requireBranchSelection && state.cabang === "NONE") return [];
+  const { kanwil, cabang, elemen, extraColumn, extraValue } = state;
+  const segment = profilerConfig.lockedSegment || state.segment;
   const { kanwil: kanwilCol, cabang: cabangCol, elemen: elemenCol } = state.mapping;
   return state.rows.filter((row) => {
+    if (document.querySelector("#branchPembinaFilter") && state.branchPembina !== "ALL" && String(row[normalizedIssueColumns.pembina] ?? "").trim() !== state.branchPembina) return false;
     if (kanwilCol && kanwil !== "ALL" && String(row[kanwilCol] ?? "").trim() !== kanwil) return false;
     if (cabangCol && cabang !== "ALL" && String(row[cabangCol] ?? "").trim() !== cabang) return false;
-    if (els.segmentFilter && segment !== "ALL" && String(row[normalizedIssueColumns.segment] ?? "").trim() !== segment) return false;
+    if ((profilerConfig.lockedSegment || els.segmentFilter) && segment !== "ALL" && String(row[normalizedIssueColumns.segment] ?? "").trim().toUpperCase() !== segment.toUpperCase()) return false;
     if (elemenCol && elemen !== "ALL" && String(row[elemenCol] ?? "").trim() !== elemen) return false;
     if (extraColumn !== "NONE" && extraValue !== "ALL" && String(row[extraColumn] ?? "").trim() !== extraValue) return false;
     if (state.search) {
-      const haystack = state.columns.map((column) => row[column]).join(" ").toLowerCase();
+      const haystack = profilerConfig.searchNppOnly
+        ? String(row[normalizedIssueColumns.npp] ?? "").toLowerCase()
+        : state.columns.map((column) => row[column]).join(" ").toLowerCase();
       if (!haystack.includes(state.search)) return false;
     }
     return true;
@@ -753,6 +761,7 @@ function formatInsightBody(body) {
 }
 
 function renderFilters() {
+  renderBranchPembinaFilter();
   const kanwils = uniqueValues(state.rows, state.mapping.kanwil);
   const cabangs = uniqueValues(state.rows, state.mapping.cabang);
   const segments = uniqueValues(state.rows, normalizedIssueColumns.segment);
@@ -764,8 +773,9 @@ function renderFilters() {
   } else if (state.mapping.kanwil && !kanwils.includes(state.kanwil)) {
     state.kanwil = kanwils.includes("905") ? "905" : "ALL";
   }
-  if (state.mapping.cabang && !cabangs.includes(state.cabang)) state.cabang = "ALL";
-  if (els.segmentFilter && !segments.includes(state.segment)) state.segment = "ALL";
+  if (state.mapping.cabang && !["ALL", "NONE", ...cabangs].includes(state.cabang)) state.cabang = profilerConfig.requireBranchSelection ? "NONE" : "ALL";
+  if (profilerConfig.lockedSegment) state.segment = profilerConfig.lockedSegment;
+  else if (els.segmentFilter && !segments.includes(state.segment)) state.segment = "ALL";
   if (state.mapping.elemen && !elemens.includes(state.elemen)) state.elemen = "ALL";
   if (!categoricalColumns.includes(state.extraColumn)) state.extraColumn = "NONE";
 
@@ -777,9 +787,16 @@ function renderFilters() {
     state.kanwil,
   );
   els.kanwilFilter.disabled = Boolean(profilerConfig.lockedKanwil);
-  setOptions(els.cabangFilter, [{ value: "ALL", label: "Semua Cabang" }, ...cabangs.map((value) => ({ value, label: officeLabel(value) }))], state.cabang);
+  setOptions(els.cabangFilter, [
+    ...(profilerConfig.requireBranchSelection ? [{ value: "NONE", label: "Pilih Cabang" }] : []),
+    { value: "ALL", label: "Semua Cabang" },
+    ...cabangs.map((value) => ({ value, label: officeLabel(value) })),
+  ], state.cabang);
   if (els.segmentFilter) {
-    setOptions(els.segmentFilter, [{ value: "ALL", label: "Semua Segmen" }, ...segments.map((value) => ({ value, label: value }))], state.segment);
+    setOptions(els.segmentFilter, profilerConfig.lockedSegment
+      ? [{ value: profilerConfig.lockedSegment, label: profilerConfig.lockedSegment }]
+      : [{ value: "ALL", label: "Semua Segmen" }, ...segments.map((value) => ({ value, label: value }))], state.segment);
+    els.segmentFilter.disabled = Boolean(profilerConfig.lockedSegment);
   }
   setOptions(els.elemenFilter, [{ value: "ALL", label: "Semua Elemen" }, ...elemens.map((value) => ({ value, label: value }))], state.elemen);
   setOptions(
@@ -791,7 +808,63 @@ function renderFilters() {
   const extraValues = state.extraColumn === "NONE" ? [] : uniqueValues(state.rows, state.extraColumn);
   if (!extraValues.includes(state.extraValue)) state.extraValue = "ALL";
   setOptions(els.extraValueFilter, [{ value: "ALL", label: "Semua Nilai" }, ...extraValues.map((value) => ({ value, label: value }))], state.extraValue);
-  els.extraValueFilter.disabled = state.extraColumn === "NONE";
+  if (els.extraValueFilter) els.extraValueFilter.disabled = state.extraColumn === "NONE";
+}
+
+function renderBranchPembinaFilter() {
+  const select = document.querySelector("#branchPembinaFilter");
+  if (!select) return;
+  const rows = state.cabang === "NONE" ? [] : state.rows.filter((row) => {
+    if (state.mapping.kanwil && state.kanwil !== "ALL" && String(row[state.mapping.kanwil] ?? "").trim() !== state.kanwil) return false;
+    if (state.cabang !== "ALL" && String(row[state.mapping.cabang] ?? "").trim() !== state.cabang) return false;
+    return String(row[normalizedIssueColumns.segment] ?? "").trim().toUpperCase() === "PU";
+  });
+  const values = uniqueValues(rows, normalizedIssueColumns.pembina);
+  if (!values.includes(state.branchPembina)) state.branchPembina = "ALL";
+  setOptions(select, [{ value: "ALL", label: "Semua Pembina" }, ...values.map((value) => ({ value, label: value }))], state.branchPembina);
+  select.disabled = state.cabang === "NONE" || !values.length;
+}
+
+function previewColumnLabel(column) {
+  return profilerConfig.personNameColumnLabel && column === normalizedIssueColumns.perusahaan
+    ? profilerConfig.personNameColumnLabel : column;
+}
+
+function previewColumnStyle(column) {
+  if (!profilerConfig.maskPersonalIdentifiers) return "";
+  const widths = {
+    [normalizedIssueColumns.cabang]: 4,
+    [normalizedIssueColumns.officeName]: 8,
+    [normalizedIssueColumns.segment]: 4,
+    [normalizedIssueColumns.category]: 5,
+    [normalizedIssueColumns.npp]: 7,
+    [normalizedIssueColumns.kodeTk]: 8,
+    [normalizedIssueColumns.kpj]: 8,
+    [normalizedIssueColumns.nik]: 11,
+    [normalizedIssueColumns.perusahaan]: 14,
+    [normalizedIssueColumns.value]: 9,
+    [normalizedIssueColumns.elemen]: 8,
+    [normalizedIssueColumns.status]: 6,
+    [normalizedIssueColumns.pembina]: 8,
+  };
+  return widths[column] ? ` style="width:${widths[column]}%"` : "";
+}
+
+function maskedPreviewValue(row, column) {
+  const value = row[column];
+  if (!profilerConfig.maskPersonalIdentifiers) return value;
+  const sensitive = [normalizedIssueColumns.kodeTk, normalizedIssueColumns.kpj, normalizedIssueColumns.nik];
+  const identifierValue = column === normalizedIssueColumns.value
+    && /NIK|IDENTITAS|KPJ|KODE[ _]?TK/i.test(String(row[state.mapping.elemen] ?? ""));
+  if (!sensitive.includes(column) && !identifierValue) return value;
+  const text = String(value ?? "");
+  const characterCount = (text.match(/[a-z0-9]/gi) ?? []).length;
+  const visible = characterCount >= 16 ? 3 : characterCount > 4 ? 2 : characterCount > 2 ? 1 : 0;
+  let index = 0;
+  return text.replace(/[a-z0-9]/gi, (character) => {
+    const position = index++;
+    return position < visible || position >= characterCount - visible ? character : "*";
+  });
 }
 
 function renderPreview(rows) {
@@ -829,12 +902,13 @@ function renderPreview(rows) {
   if (state.previewPage < 1) state.previewPage = 1;
   const start = (state.previewPage - 1) * state.previewPageSize;
   const pageRows = previewRows.slice(start, start + state.previewPageSize);
-  els.previewHead.innerHTML = `<tr>${columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr>`;
+  els.previewHead.innerHTML = `<tr>${columns.map((column) => `<th${previewColumnStyle(column)}>${escapeHtml(previewColumnLabel(column))}</th>`).join("")}</tr>`;
   els.previewBody.innerHTML = pageRows.map((row) => `
     <tr>${columns.map((column) => {
       const isAmount = column === state.mapping.amount;
-      const value = isAmount ? formatMeasure(parseNumber(row[column])) : row[column];
-      return `<td class="${isAmount ? "num" : ""}" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
+      const value = isAmount ? formatMeasure(parseNumber(row[column])) : maskedPreviewValue(row, column);
+      const identifier = [normalizedIssueColumns.npp, normalizedIssueColumns.kodeTk, normalizedIssueColumns.kpj, normalizedIssueColumns.nik].includes(column);
+      return `<td class="${isAmount ? "num" : ""}${identifier ? " preview-identifier" : ""}" title="${escapeHtml(value)}">${escapeHtml(value)}</td>`;
     }).join("")}</tr>
   `).join("");
   els.tableSubtitle.textContent = `${fmtNumber.format(previewRows.length)} baris preview cocok; menampilkan ${fmtNumber.format(pageRows.length)} baris pada halaman ini.`;
@@ -889,10 +963,10 @@ function downloadFilteredCsv() {
   }
   const columns = previewColumns();
   const csv = [
-    columns.map(csvEscape).join(","),
+    columns.map((column) => csvEscape(previewColumnLabel(column))).join(","),
     ...rows.map((row) => columns.map((column) => {
       const isAmount = column === state.mapping.amount;
-      return csvEscape(isAmount ? parseNumber(row[column]) : row[column]);
+      return csvEscape(isAmount ? parseNumber(row[column]) : maskedPreviewValue(row, column));
     }).join(",")),
   ].join("\r\n");
   const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
@@ -908,7 +982,7 @@ function downloadFilteredCsv() {
   URL.revokeObjectURL(url);
 }
 
-function buildNppPivotData(rows) {
+function buildNppPivotData(rows, pivotState = state) {
   const branchColumn = state.mapping.cabang;
   const elementColumn = state.mapping.elemen;
   const amountColumn = state.mapping.amount;
@@ -930,13 +1004,13 @@ function buildNppPivotData(rows) {
     const npp = String(row[nppColumn] ?? "").trim() || "-";
     const pembina = String(row[pembinaColumn] ?? "").trim() || "-";
     const element = String(row[elementColumn] ?? "").trim() || "Kosong";
-    const key = state.nppViewMode === "NPP"
+    const key = pivotState.nppViewMode === "NPP"
       ? `${branch}|${segment}|${npp}|${pembina}`
       : `${branch}|${segment}|${pembina}`;
     const current = groups.get(key) ?? {
       branch,
       segment,
-      npp: state.nppViewMode === "NPP" ? npp : "-",
+      npp: pivotState.nppViewMode === "NPP" ? npp : "-",
       pembina,
       total: 0,
       elements: new Map(),
@@ -948,23 +1022,23 @@ function buildNppPivotData(rows) {
     groups.set(key, current);
   }
 
-  const search = state.nppSearch;
+  const search = pivotState.nppSearch;
   const items = [...groups.values()]
-    .filter((item) => state.nppSegment === "ALL" || item.segment === state.nppSegment)
+    .filter((item) => pivotState.nppSegment === "ALL" || item.segment === pivotState.nppSegment)
     .filter((item) => !search || `${item.npp} ${item.pembina}`.toLowerCase().includes(search))
     .sort((a, b) => b.total - a.total || a.branch.localeCompare(b.branch, "id", { numeric: true }) || a.npp.localeCompare(b.npp, "id", { numeric: true }));
 
   return { elementNames, items };
 }
 
-function downloadNppPivotCsv() {
-  const { elementNames, items } = buildNppPivotData(filteredRows());
+function downloadNppPivotCsv(pivotState = state) {
+  const { elementNames, items } = buildNppPivotData(filteredRows(), pivotState);
   if (!items.length) {
     showToast("Tidak ada data pivot NPP untuk didownload.");
     return;
   }
 
-  const includeNpp = state.nppViewMode === "NPP";
+  const includeNpp = pivotState.nppViewMode === "NPP";
   const columns = ["Kode Cabang", "Segmen", ...(includeNpp ? ["NPP"] : []), "Pembina", "Total", ...elementNames];
   const csv = [
     columns.map(csvEscape).join(","),
@@ -1059,47 +1133,64 @@ function renderPrimaryQuality(rows) {
   `;
 }
 
-function renderNppPivotPanel(rows) {
-  if (!els.nppPivotPanel) return;
+const splitPembinaState = {
+  nppViewMode: "PEMBINA", nppSegment: "ALL", nppSearch: "", nppPage: 1, nppPageSize: 25,
+};
+const splitPembinaUi = {
+  nppPivotPanel: document.querySelector("#splitPembinaPanel"),
+  nppPivotSubtitle: document.querySelector("#splitPembinaSubtitle"),
+  nppSearchInput: document.querySelector("#splitPembinaSearch"),
+  downloadNppPivot: document.querySelector("#splitPembinaDownload"),
+};
+splitPembinaUi.nppSearchInput?.addEventListener("input", (event) => {
+  splitPembinaState.nppSearch = event.target.value.trim().toLowerCase();
+  splitPembinaState.nppPage = 1;
+  renderNppPivotPanel(filteredRows(), splitPembinaUi, splitPembinaState);
+});
+splitPembinaUi.downloadNppPivot?.addEventListener("click", () => downloadNppPivotCsv(splitPembinaState));
 
-  renderNppSegmentOptions(rows);
-  if (els.nppViewModeFilter) els.nppViewModeFilter.value = state.nppViewMode;
-  if (els.nppSearchInput) {
-    els.nppSearchInput.placeholder = state.nppViewMode === "NPP" ? "Cari NPP / pembina..." : "Cari pembina...";
+function renderNppPivotPanel(rows, ui = els, pivotState = state) {
+  if (!ui.nppPivotPanel) return;
+
+  if (ui === els) renderNppSegmentOptions(rows);
+  if (profilerConfig.splitPivots && ui === els) pivotState.nppViewMode = "NPP";
+  if (ui.nppViewModeFilter) ui.nppViewModeFilter.value = pivotState.nppViewMode;
+  if (ui.nppSearchInput) {
+    ui.nppSearchInput.placeholder = pivotState.nppViewMode === "NPP" ? "Cari NPP / pembina..." : "Cari pembina...";
   }
-  const { elementNames, items } = buildNppPivotData(rows);
-  const includeNpp = state.nppViewMode === "NPP";
+  const { elementNames, items } = buildNppPivotData(rows, pivotState);
+  const includeNpp = pivotState.nppViewMode === "NPP";
   const subjectLabel = includeNpp ? "NPP" : "pembina";
 
-  if (!items.length && !state.nppSearch) {
-    els.nppPivotPanel.innerHTML = `<p class="empty">Tidak ada data pivot untuk filter aktif.</p>`;
-    if (els.nppPivotSubtitle) els.nppPivotSubtitle.textContent = `Beban elemen NOT GOOD per ${subjectLabel}.`;
-    if (els.downloadNppPivot) els.downloadNppPivot.disabled = true;
+  if (!items.length && !pivotState.nppSearch) {
+    ui.nppPivotPanel.innerHTML = `<p class="empty">Tidak ada data pivot untuk filter aktif.</p>`;
+    if (ui.nppPivotSubtitle) ui.nppPivotSubtitle.textContent = `Beban elemen NOT GOOD per ${subjectLabel}.`;
+    if (ui.downloadNppPivot) ui.downloadNppPivot.disabled = true;
     return;
   }
 
-  const totalPages = Math.max(1, Math.ceil(items.length / state.nppPageSize));
-  if (state.nppPage > totalPages) state.nppPage = totalPages;
-  if (state.nppPage < 1) state.nppPage = 1;
+  const totalPages = Math.max(1, Math.ceil(items.length / pivotState.nppPageSize));
+  if (pivotState.nppPage > totalPages) pivotState.nppPage = totalPages;
+  if (pivotState.nppPage < 1) pivotState.nppPage = 1;
 
-  const start = (state.nppPage - 1) * state.nppPageSize;
-  const visible = items.slice(start, start + state.nppPageSize);
+  const start = (pivotState.nppPage - 1) * pivotState.nppPageSize;
+  const visible = items.slice(start, start + pivotState.nppPageSize);
   const firstRow = items.length ? start + 1 : 0;
   const lastRow = Math.min(start + visible.length, items.length);
 
-  if (els.nppPivotSubtitle) {
-    els.nppPivotSubtitle.textContent = `${fmtNumber.format(items.length)} ${subjectLabel} cocok; menampilkan ${fmtNumber.format(firstRow)}-${fmtNumber.format(lastRow)} dari ${fmtNumber.format(items.length)} ${subjectLabel}.`;
+  if (ui.nppPivotSubtitle) {
+    ui.nppPivotSubtitle.textContent = `${fmtNumber.format(items.length)} ${subjectLabel} cocok; menampilkan ${fmtNumber.format(firstRow)}-${fmtNumber.format(lastRow)} dari ${fmtNumber.format(items.length)} ${subjectLabel}.`;
   }
 
   if (!visible.length) {
-    els.nppPivotPanel.innerHTML = `<p class="empty">Tidak ada data yang cocok dengan pencarian.</p>`;
-    if (els.downloadNppPivot) els.downloadNppPivot.disabled = true;
+    ui.nppPivotPanel.innerHTML = `<p class="empty">Tidak ada data yang cocok dengan pencarian.</p>`;
+    if (ui.downloadNppPivot) ui.downloadNppPivot.disabled = true;
     return;
   }
 
-  if (els.downloadNppPivot) els.downloadNppPivot.disabled = false;
+  if (ui.downloadNppPivot) ui.downloadNppPivot.disabled = false;
 
-  els.nppPivotPanel.innerHTML = `
+  ui.nppPivotPanel.innerHTML = `
     <div class="table-wrap npp-pivot-wrap">
       <table class="npp-pivot-table">
         <thead>
@@ -1130,18 +1221,18 @@ function renderNppPivotPanel(rows) {
       </table>
     </div>
     <div class="pagination compact-pagination">
-      <button id="prevNppPage" type="button" ${state.nppPage <= 1 ? "disabled" : ""}>Sebelumnya</button>
-      <span>Halaman ${fmtNumber.format(state.nppPage)} / ${fmtNumber.format(totalPages)}</span>
-      <button id="nextNppPage" type="button" ${state.nppPage >= totalPages ? "disabled" : ""}>Berikutnya</button>
+      <button data-npp-page="previous" type="button" ${pivotState.nppPage <= 1 ? "disabled" : ""}>Sebelumnya</button>
+      <span>Halaman ${fmtNumber.format(pivotState.nppPage)} / ${fmtNumber.format(totalPages)}</span>
+      <button data-npp-page="next" type="button" ${pivotState.nppPage >= totalPages ? "disabled" : ""}>Berikutnya</button>
     </div>
   `;
-  els.nppPivotPanel.querySelector("#prevNppPage")?.addEventListener("click", () => {
-    state.nppPage -= 1;
-    render();
+  ui.nppPivotPanel.querySelector('[data-npp-page="previous"]')?.addEventListener("click", () => {
+    pivotState.nppPage -= 1;
+    renderNppPivotPanel(filteredRows(), ui, pivotState);
   });
-  els.nppPivotPanel.querySelector("#nextNppPage")?.addEventListener("click", () => {
-    state.nppPage += 1;
-    render();
+  ui.nppPivotPanel.querySelector('[data-npp-page="next"]')?.addEventListener("click", () => {
+    pivotState.nppPage += 1;
+    renderNppPivotPanel(filteredRows(), ui, pivotState);
   });
 }
 
@@ -1238,18 +1329,22 @@ function renderPembinaPanel(rows) {
 }
 
 function renderEmpty() {
+  renderBranchPembinaFilter();
   els.kpiTotal.textContent = "-";
   els.kpiRows.textContent = "-";
+  if (els.kpiPkbu) els.kpiPkbu.textContent = "-";
   els.kpiTopCabang.textContent = "-";
   els.kpiTopElemen.textContent = "-";
-  els.branchBars.innerHTML = `<p class="empty">Upload file CSV, TSV, TXT, XLS, atau XLSX.</p>`;
+  if (els.branchBars) els.branchBars.innerHTML = `<p class="empty">Upload file CSV, TSV, TXT, XLS, atau XLSX.</p>`;
   els.elementBars.innerHTML = `<p class="empty">Data baru akan mengganti data yang sedang tampil.</p>`;
   if (els.pembinaPanel) els.pembinaPanel.innerHTML = `<p class="empty">Belum ada data pembina.</p>`;
   if (els.pembinaSubtitle) els.pembinaSubtitle.textContent = "Pembina dengan total elemen PKBU invalid terbanyak.";
   if (els.nppPivotPanel) els.nppPivotPanel.innerHTML = `<p class="empty">Belum ada data NPP.</p>`;
+  if (splitPembinaUi.nppPivotPanel) splitPembinaUi.nppPivotPanel.innerHTML = `<p class="empty">Belum ada data pembina.</p>`;
+  if (splitPembinaUi.downloadNppPivot) splitPembinaUi.downloadNppPivot.disabled = true;
   if (els.nppPivotSubtitle) els.nppPivotSubtitle.textContent = "Beban elemen NOT GOOD per pembina.";
   if (els.downloadNppPivot) els.downloadNppPivot.disabled = true;
-  els.filteredInsights.innerHTML = `<p class="empty">Belum ada data.</p>`;
+  if (els.filteredInsights) els.filteredInsights.innerHTML = `<p class="empty">Belum ada data.</p>`;
   els.previewHead.innerHTML = "";
   els.previewBody.innerHTML = "";
   if (els.pageInfo) els.pageInfo.textContent = "Halaman 1";
@@ -1261,7 +1356,12 @@ function renderEmpty() {
   setOptions(els.kanwilFilter, [{ value: "905", label: "905 - Kanwil Jateng DIY" }], "905");
   els.kanwilFilter.disabled = true;
   setOptions(els.cabangFilter, [{ value: "ALL", label: "Semua Cabang" }], "ALL");
-  if (els.segmentFilter) setOptions(els.segmentFilter, [{ value: "ALL", label: "Semua Segmen" }], "ALL");
+  if (els.segmentFilter) {
+    const segment = profilerConfig.lockedSegment || "ALL";
+    state.segment = segment;
+    setOptions(els.segmentFilter, [{ value: segment, label: profilerConfig.lockedSegment || "Semua Segmen" }], segment);
+    els.segmentFilter.disabled = Boolean(profilerConfig.lockedSegment);
+  }
   if (els.nppSegmentFilter) setOptions(els.nppSegmentFilter, [{ value: "ALL", label: "Semua Segmen" }], "ALL");
   if (els.nppViewModeFilter) els.nppViewModeFilter.value = "PEMBINA";
   setOptions(els.elemenFilter, [{ value: "ALL", label: "Semua Elemen" }], "ALL");
@@ -1283,18 +1383,23 @@ function render() {
 
   els.kpiTotal.textContent = formatMeasure(total);
   els.kpiRows.textContent = fmtNumber.format(countProblemNpp(rows));
+  if (els.kpiPkbu) {
+    const npps = rows.map((row) => String(row[normalizedIssueColumns.npp] ?? "").trim()).filter((value) => value && value !== "-");
+    els.kpiPkbu.textContent = fmtNumber.format(new Set(npps).size);
+  }
   els.kpiTopCabang.textContent = branchGroups[0] ? officeLabel(branchGroups[0].name) : "-";
   els.kpiTopElemen.textContent = elementGroupsFiltered[0]?.name ?? "-";
-  els.cabangSubtitle.textContent = topShare(branchGroups, total, { labelFn: officeLabel });
+  if (els.cabangSubtitle) els.cabangSubtitle.textContent = topShare(branchGroups, total, { labelFn: officeLabel });
   els.elemenSubtitle.textContent = `${activeFilterLabel()}: ${topShare(elementGroupsFiltered, total)}`;
-  els.filteredSubtitle.textContent = activeFilterLabel();
+  if (els.filteredSubtitle) els.filteredSubtitle.textContent = activeFilterLabel();
 
-  renderBranchPivotTable(els.branchBars, rows, branchGroups, elementGroupsFiltered);
+  if (els.branchBars) renderBranchPivotTable(els.branchBars, rows, branchGroups, elementGroupsFiltered);
   renderBars(els.elementBars, elementGroupsFiltered, total, 18);
   renderPrimaryQuality(rows);
   renderNppPivotPanel(rows);
+  if (profilerConfig.splitPivots) renderNppPivotPanel(rows, splitPembinaUi, splitPembinaState);
   renderPembinaPanel(rows);
-  renderInsights(els.filteredInsights, rows, insightScopeLabel());
+  if (els.filteredInsights) renderInsights(els.filteredInsights, rows, insightScopeLabel());
   renderPreview(rows);
 }
 
@@ -1416,7 +1521,7 @@ async function restoreSavedData() {
     state.valueMode = saved.valueMode ?? "currency";
     state.sourceRowCount = saved.sourceRowCount ?? saved.rows.length;
     state.kanwil = profilerConfig.lockedKanwil ?? (state.mapping.kanwil && uniqueValues(state.rows, state.mapping.kanwil).includes("905") ? "905" : "ALL");
-    state.cabang = "ALL";
+    state.cabang = profilerConfig.requireBranchSelection ? "NONE" : "ALL";
     state.segment = "ALL";
     state.elemen = "ALL";
     state.extraColumn = "NONE";
@@ -1524,7 +1629,7 @@ async function handleFiles(files) {
     state.valueMode = qualityData ? "count" : "currency";
     state.sourceRowCount = qualityData?.sourceRows ?? rows.length;
     state.kanwil = profilerConfig.lockedKanwil ?? (mapping.kanwil && uniqueValues(rows, mapping.kanwil).includes("905") ? "905" : "ALL");
-    state.cabang = "ALL";
+    state.cabang = profilerConfig.requireBranchSelection ? "NONE" : "ALL";
     state.segment = "ALL";
     state.elemen = "ALL";
     state.extraColumn = "NONE";
@@ -1551,8 +1656,9 @@ async function handleFiles(files) {
 }
 
 function resetFilters() {
+  state.branchPembina = "ALL";
   state.kanwil = profilerConfig.lockedKanwil ?? (state.mapping.kanwil && uniqueValues(state.rows, state.mapping.kanwil).includes("905") ? "905" : "ALL");
-  state.cabang = "ALL";
+  state.cabang = profilerConfig.requireBranchSelection ? "NONE" : "ALL";
   state.segment = "ALL";
   state.elemen = "ALL";
   state.extraColumn = "NONE";
@@ -1632,6 +1738,7 @@ function bindEvents() {
     render();
   });
   els.cabangFilter.addEventListener("change", (event) => {
+    state.branchPembina = "ALL";
     state.cabang = event.target.value;
     state.previewPage = 1;
     state.pembinaPage = 1;
@@ -1652,7 +1759,7 @@ function bindEvents() {
     state.nppPage = 1;
     render();
   });
-  els.extraColumnFilter.addEventListener("change", (event) => {
+  els.extraColumnFilter?.addEventListener("change", (event) => {
     state.extraColumn = event.target.value;
     state.extraValue = "ALL";
     state.previewPage = 1;
@@ -1660,7 +1767,7 @@ function bindEvents() {
     state.nppPage = 1;
     render();
   });
-  els.extraValueFilter.addEventListener("change", (event) => {
+  els.extraValueFilter?.addEventListener("change", (event) => {
     state.extraValue = event.target.value;
     state.previewPage = 1;
     state.pembinaPage = 1;
@@ -1687,7 +1794,7 @@ function bindEvents() {
     render();
   });
   els.downloadFiltered?.addEventListener("click", downloadFilteredCsv);
-  els.downloadNppPivot?.addEventListener("click", downloadNppPivotCsv);
+  els.downloadNppPivot?.addEventListener("click", () => downloadNppPivotCsv());
   els.pembinaSearchInput?.addEventListener("input", (event) => {
     state.pembinaSearch = event.target.value.trim().toLowerCase();
     state.pembinaPage = 1;
@@ -1710,6 +1817,40 @@ function bindEvents() {
   });
 }
 
+document.querySelector("#branchPembinaFilter")?.addEventListener("change", (event) => {
+  state.branchPembina = event.target.value;
+  state.previewPage = 1;
+  state.nppPage = 1;
+  splitPembinaState.nppPage = 1;
+  render();
+});
+
 bindEvents();
 window.addEventListener("afterprint", unlockFiltersAfterPrint);
-restoreSavedData().then(() => render());
+async function initializeProfiler() {
+  if (!profilerConfig.autoSourceEndpoint) {
+    await restoreSavedData();
+    render();
+    return;
+  }
+  render();
+  els.sourceNote.textContent = "Memuat file data terbaru...";
+  els.fileInput.disabled = true;
+  try {
+    const response = await fetch(profilerConfig.autoSourceEndpoint, { cache: "no-store" });
+    if (!response.ok) throw new Error("Data sumber belum dapat diakses. Coba muat ulang halaman.");
+    const data = await response.json();
+    if (!data.name || typeof data.text !== "string") throw new Error("Respons sumber data tidak valid.");
+    await handleFiles([new File([data.text], data.name, { type: "text/plain" })]);
+    if (state.fileName === data.name && state.rows.length) {
+      els.sourceNote.textContent = `Data terbaru ${data.date} | ${els.sourceNote.textContent}`;
+    }
+  } catch (error) {
+    els.sourceNote.textContent = error.message;
+    showToast(error.message);
+  } finally {
+    els.fileInput.disabled = false;
+  }
+}
+
+initializeProfiler();

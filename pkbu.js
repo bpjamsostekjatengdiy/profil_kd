@@ -1355,7 +1355,10 @@ function renderEmpty() {
   setOptions(els.previewElementFilter, [{ value: "ALL", label: "Semua Elemen Preview" }], "ALL");
   setOptions(els.kanwilFilter, [{ value: "905", label: "905 - Kanwil Jateng DIY" }], "905");
   els.kanwilFilter.disabled = true;
-  setOptions(els.cabangFilter, [{ value: "ALL", label: "Semua Cabang" }], "ALL");
+  setOptions(els.cabangFilter, [
+    ...(profilerConfig.requireBranchSelection ? [{ value: "NONE", label: "Pilih Cabang" }] : []),
+    { value: "ALL", label: "Semua Cabang" },
+  ], profilerConfig.requireBranchSelection ? "NONE" : "ALL");
   if (els.segmentFilter) {
     const segment = profilerConfig.lockedSegment || "ALL";
     state.segment = segment;
@@ -1828,22 +1831,26 @@ document.querySelector("#branchPembinaFilter")?.addEventListener("change", (even
 bindEvents();
 window.addEventListener("afterprint", unlockFiltersAfterPrint);
 async function initializeProfiler() {
-  if (!profilerConfig.autoSourceEndpoint) {
+  if (!profilerConfig.autoSourceUrl) {
     await restoreSavedData();
     render();
     return;
   }
   render();
-  els.sourceNote.textContent = "Memuat file data terbaru...";
+  els.sourceNote.textContent = "Memuat data spreadsheet...";
   els.fileInput.disabled = true;
   try {
-    const response = await fetch(profilerConfig.autoSourceEndpoint, { cache: "no-store" });
-    if (!response.ok) throw new Error("Data sumber belum dapat diakses. Coba muat ulang halaman.");
-    const data = await response.json();
-    if (!data.name || typeof data.text !== "string") throw new Error("Respons sumber data tidak valid.");
-    await handleFiles([new File([data.text], data.name, { type: "text/plain" })]);
-    if (state.fileName === data.name && state.rows.length) {
-      els.sourceNote.textContent = `${data.sourceLabel || `Data terbaru ${data.date}`} | ${els.sourceNote.textContent}`;
+    const response = await fetch(profilerConfig.autoSourceUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error("Spreadsheet belum dapat diakses. Coba muat ulang halaman.");
+    const text = (await response.text()).replace(/^\uFEFF/, "");
+    const header = text.split(/\r?\n/, 1)[0];
+    if (/^\s*</.test(text) || !["KODE_KANTOR", "NPP", "NIK_QUALITY"].every((column) => header.includes(column))) {
+      throw new Error("Struktur sheet TK aktif update tidak sesuai.");
+    }
+    const name = profilerConfig.autoSourceName || "data.csv";
+    await handleFiles([new File([text], name, { type: "text/csv" })]);
+    if (state.fileName === name && state.rows.length) {
+      els.sourceNote.textContent = `${profilerConfig.autoSourceLabel || "Sumber: spreadsheet"} | ${els.sourceNote.textContent}`;
     }
   } catch (error) {
     els.sourceNote.textContent = error.message;

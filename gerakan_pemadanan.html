@@ -8,6 +8,21 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   </head>
   <body class="gerakan-pemadanan-page">
+    <main id="gerakanAccess" class="gerakan-access">
+      <section class="gerakan-access-panel" aria-labelledby="gerakanAccessTitle">
+        <p class="gerakan-access-eyebrow">Data Quality</p>
+        <h1 id="gerakanAccessTitle">Gerakan Pemadanan</h1>
+        <form id="gerakanAccessForm">
+          <label for="gerakanKeypass">Keypass</label>
+          <input id="gerakanKeypass" name="keypass" type="password" autocomplete="current-password" required maxlength="200" aria-describedby="gerakanAccessError" autofocus />
+          <p id="gerakanAccessError" class="gerakan-access-error" role="alert" hidden></p>
+          <button id="gerakanAccessSubmit" type="submit">Buka Halaman</button>
+        </form>
+        <a href="index.html">Kembali ke Summary</a>
+        <noscript><p>Aktifkan JavaScript untuk membuka halaman ini.</p></noscript>
+      </section>
+    </main>
+    <div id="gerakanContent" hidden>
     <aside class="sidebar" aria-label="Menu utama">
       <div class="sidebar-title">Data Quality</div>
       <nav>
@@ -150,6 +165,7 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
+    </div>
     <script>
       window.PROFILER_CONFIG = {
         storageKey: "gerakanPemadananProfiler.activeData.v1",
@@ -162,11 +178,11 @@
         maskPersonalIdentifiers: true,
         personNameColumnLabel: "Nama TK",
         splitPivots: true,
-        autoSourceEndpoint: "/api/gerakan-pemadanan/latest",
+        autoSourceUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtw4zahkq1MPDzwQJDjWRDdUN4ffG8O4aokdiIBvxh_YKvxnQ6-hNpTQXkQoidX8TrHZ0bku-VJE4K/pub?gid=1388056701&single=true&output=csv",
+        autoSourceName: "TK aktif update.csv",
+        autoSourceLabel: "Sumber: spreadsheet TK aktif update",
       };
     </script>
-    <script src="sidebar.js"></script>
-    <script src="pkbu.js"></script>
-    <script src="gerakan-pemadanan-ui.js"></script>
+    <script src="gerakan-keypass.js"></script>
   </body>
 </html>

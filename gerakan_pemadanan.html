@@ -41,10 +41,15 @@
           Kanwil
           <select id="kanwilFilter"></select>
         </label>
-        <label>
-          Cabang
-          <select id="cabangFilter"></select>
-        </label>
+        <div class="branch-first-filter">
+          <label for="cabangFilter">Cabang</label>
+          <select id="cabangFilter" aria-describedby="branchFirstHint"></select>
+          <div id="branchFirstHint" class="branch-first-hint" role="status" hidden>
+            <strong>Langkah 1: Pilih Cabang</strong>
+            <p>Pilih kantor cabang terlebih dahulu untuk menampilkan data. Pilih Semua Cabang untuk total keseluruhan.</p>
+            <button id="dismissBranchHint" type="button">Mengerti</button>
+          </div>
+        </div>
         <label>
           Segmen
           <select id="segmentFilter"></select>
@@ -162,5 +167,6 @@
     </script>
     <script src="sidebar.js"></script>
     <script src="pkbu.js"></script>
+    <script src="gerakan-pemadanan-ui.js"></script>
   </body>
 </html>

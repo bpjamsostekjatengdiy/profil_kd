@@ -26,7 +26,6 @@ const sidebarGroups = [
       { href: "tk.html", icon: "userCheck", label: "TK Aktif" },
       { href: "tk-na.html", icon: "userMinus", label: "TK NA" },
       { href: "tk-pemadanan.html", icon: "match", label: "TK Pemadanan" },
-      { href: "gerakan_pemadanan.html", icon: "match", label: "Gerakan Pemadanan" },
     ],
   },
 ];
@@ -41,7 +40,8 @@ function renderSidebarMenu() {
   const nav = sidebar.querySelector("nav");
   if (!nav) return;
   const currentPage = location.pathname.split("/").pop() || "index.html";
-  nav.innerHTML = sidebarGroups.map((group) => {
+  const priorityActive = currentPage === "gerakan_pemadanan.html";
+  nav.innerHTML = `<a class="nav-priority${priorityActive ? " active" : ""}" href="gerakan_pemadanan.html"${priorityActive ? ' aria-current="page"' : ""}><span class="nav-icon">${iconSvg("warning")}</span>Gerakan Pemadanan</a>` + sidebarGroups.map((group) => {
     const activeChild = group.items.some((item) => item.href === currentPage);
     return `
       <section class="nav-section" data-menu-group="${group.key}">
@@ -61,6 +61,7 @@ function renderSidebarMenu() {
 
 function iconSvg(name) {
   const icons = {
+    warning: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 4.3 2.7 17.5A2 2 0 0 0 4.4 20.5h15.2a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 16h.01"></path></svg>`,
     summary: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7"></rect><rect x="13" y="4" width="7" height="7"></rect><rect x="4" y="13" width="7" height="7"></rect><rect x="13" y="13" width="7" height="7"></rect></svg>`,
     trend: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h16"></path><path d="M5 15l4-4 4 2 6-7"></path><path d="M15 6h4v4"></path></svg>`,
     insight: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M8 14c-1.4-1.1-2-2.7-2-4.3A6 6 0 0 1 18 9.7c0 1.6-.7 3.2-2 4.3-.7.6-1 1.2-1 2H9c0-.8-.3-1.4-1-2Z"></path><path d="M12 3v2"></path></svg>`,

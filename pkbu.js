@@ -1843,7 +1843,7 @@ async function initializeProfiler() {
     if (!data.name || typeof data.text !== "string") throw new Error("Respons sumber data tidak valid.");
     await handleFiles([new File([data.text], data.name, { type: "text/plain" })]);
     if (state.fileName === data.name && state.rows.length) {
-      els.sourceNote.textContent = `Data terbaru ${data.date} | ${els.sourceNote.textContent}`;
+      els.sourceNote.textContent = `${data.sourceLabel || `Data terbaru ${data.date}`} | ${els.sourceNote.textContent}`;
     }
   } catch (error) {
     els.sourceNote.textContent = error.message;

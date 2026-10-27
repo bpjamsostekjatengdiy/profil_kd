@@ -2,6 +2,15 @@ const sidebar = document.querySelector(".sidebar");
 
 const sidebarGroups = [
   {
+    key: "gerakan",
+    label: "Gerakan Pemadanan",
+    priority: true,
+    items: [
+      { href: "gerakan_progres.html", icon: "trend", label: "Progres Capaian" },
+      { href: "gerakan_pemadanan.html", icon: "match", label: "Breakdown Data" },
+    ],
+  },
+  {
     key: "insight",
     label: "Insight",
     items: [
@@ -40,13 +49,12 @@ function renderSidebarMenu() {
   const nav = sidebar.querySelector("nav");
   if (!nav) return;
   const currentPage = location.pathname.split("/").pop() || "index.html";
-  const priorityActive = currentPage === "gerakan_pemadanan.html";
-  nav.innerHTML = `<a class="nav-priority${priorityActive ? " active" : ""}" href="gerakan_pemadanan.html"${priorityActive ? ' aria-current="page"' : ""}><span class="nav-icon">${iconSvg("warning")}</span>Gerakan Pemadanan</a>` + sidebarGroups.map((group) => {
+  nav.innerHTML = sidebarGroups.map((group) => {
     const activeChild = group.items.some((item) => item.href === currentPage);
     return `
-      <section class="nav-section" data-menu-group="${group.key}">
+      <section class="nav-section${group.priority ? " nav-priority-group" : ""}" data-menu-group="${group.key}">
         <button class="nav-group-toggle${activeChild ? " active" : ""}" type="button" aria-expanded="true" data-menu-toggle="${group.key}">
-          <span class="nav-chevron">v</span>${group.label}
+          ${group.priority ? `<span class="nav-icon">${iconSvg("warning")}</span>` : ""}<span class="nav-chevron">v</span>${group.label}
         </button>
         <div class="nav-group-items">
           ${group.items.map((item) => {
@@ -108,12 +116,12 @@ function bindSidebarToggle() {
 
 function bindSidebarDropdowns() {
   const sections = [...sidebar.querySelectorAll(".nav-section")];
-  const applyGroupState = (section) => {
+  const applyGroupState = (section, expandActive = false) => {
     const key = section.dataset.menuGroup;
     const button = section.querySelector("[data-menu-toggle]");
     const items = section.querySelector(".nav-group-items");
     const activeChild = Boolean(section.querySelector("a.active"));
-    const collapsed = localStorage.getItem(`kualitasData.nav.${key}.collapsed`) === "1" && !activeChild;
+    const collapsed = localStorage.getItem(`kualitasData.nav.${key}.collapsed`) === "1" && !(expandActive && activeChild);
     button.classList.toggle("collapsed", collapsed);
     button.setAttribute("aria-expanded", String(!collapsed));
     items.hidden = collapsed;
@@ -127,6 +135,6 @@ function bindSidebarDropdowns() {
       localStorage.setItem(`kualitasData.nav.${key}.collapsed`, nextCollapsed ? "1" : "0");
       applyGroupState(section);
     });
-    applyGroupState(section);
+    applyGroupState(section, true);
   });
 }

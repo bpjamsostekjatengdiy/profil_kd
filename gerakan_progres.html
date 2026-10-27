@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Progres Capaian Gerakan Pemadanan</title>
+    <link rel="stylesheet" href="pkbu.css" />
+    <link rel="stylesheet" href="gerakan-progres.css" />
+  </head>
+  <body class="gerakan-progress-page">
+    <main id="gerakanAccess" class="gerakan-access">
+      <section class="gerakan-access-panel" aria-labelledby="gerakanAccessTitle">
+        <p class="gerakan-access-eyebrow">Data Quality</p>
+        <h1 id="gerakanAccessTitle">Gerakan Pemadanan</h1>
+        <form id="gerakanAccessForm">
+          <label for="gerakanKeypass">Keypass</label>
+          <input id="gerakanKeypass" name="keypass" type="password" autocomplete="current-password" required maxlength="200" aria-describedby="gerakanAccessError" autofocus />
+          <p id="gerakanAccessError" class="gerakan-access-error" role="alert" hidden></p>
+          <button id="gerakanAccessSubmit" type="submit">Buka Halaman</button>
+        </form>
+        <a href="index.html">Kembali ke Summary</a>
+        <noscript><p>Aktifkan JavaScript untuk membuka halaman ini.</p></noscript>
+      </section>
+    </main>
+    <div id="gerakanContent" hidden>
+      <aside class="sidebar" aria-label="Menu utama">
+        <div class="sidebar-title">Data Quality</div>
+        <nav></nav>
+      </aside>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Gerakan Pemadanan</p>
+          <h1>Progres Capaian</h1>
+          <p id="gpSourceNote" class="source-note" role="status">Memuat dua snapshot data...</p>
+        </div>
+        <a class="gp-breakdown-link" href="gerakan_pemadanan.html">Breakdown Data</a>
+      </header>
+      <main class="layout gp-layout">
+        <section class="toolbar gp-filters" aria-label="Filter progres capaian">
+          <label>Cabang<select id="gpBranchFilter" disabled><option value="ALL">Semua Cabang</option></select></label>
+          <label>Pembina<select id="gpPembinaFilter" disabled><option value="ALL">Semua Pembina</option></select></label>
+          <span class="gp-scope">Kanwil 905 &middot; Segmen PU</span>
+          <button id="gpReset" type="button" disabled>Reset</button>
+        </section>
+        <p class="gp-calculation-note">Catatan: yang dihitung adalah <strong>beban PU aktif saja</strong>.</p>
+        <p id="gpError" class="gp-error" role="alert" hidden></p>
+        <section class="kpis gp-cards" aria-label="Ringkasan perubahan beban">
+          <article><span id="gpBeforeLabel">Beban Awal</span><strong id="gpBefore">-</strong></article>
+          <article><span id="gpAfterLabel">Beban Terakhir</span><strong id="gpAfter">-</strong></article>
+          <article><span>Perubahan Beban</span><strong id="gpChange">-</strong><small id="gpChangeNote">-</small></article>
+          <article><span>NPP / Pembina Membaik</span><strong id="gpImproved">-</strong><small>Pengurangan beban bersih</small></article>
+        </section>
+        <article class="panel gp-table-panel gp-branch-panel">
+          <div class="panel-head">
+            <div><h2>Progres Total Beban per Kantor Cabang</h2><p id="gpBranchSubtitle">Menunggu data perbandingan.</p></div>
+          </div>
+          <fieldset class="gp-local-filters" data-gp-filter-table="branch" aria-label="Filter tabel kantor cabang" disabled>
+            <input type="search" data-gp-search="branch" placeholder="Cari kode / nama kantor..." aria-label="Cari kode atau nama kantor" />
+            <select data-gp-progress="branch" aria-label="Filter progres kantor"><option value="ALL">Semua Progres</option><option value="decreased">Beban Berkurang</option><option value="increased">Beban Bertambah</option><option value="unchanged">Beban Tetap</option></select>
+            <button type="button" class="gp-local-reset" data-gp-reset-filter="branch" aria-label="Reset filter tabel kantor" title="Reset filter tabel kantor">&#8634;</button>
+          </fieldset>
+          <div class="table-wrap"><table class="gp-branch-table"><thead id="gpBranchHead"></thead><tbody id="gpBranchBody"><tr><td colspan="6">Memuat data...</td></tr></tbody><tfoot id="gpBranchFoot"></tfoot></table></div>
+        </article>
+        <section class="gp-ranking-grid" aria-label="Progres NPP dan pembina">
+        <article class="panel gp-table-panel gp-npp-panel">
+          <div class="panel-head">
+            <div><h2>Progres per NPP</h2><p id="gpNppSubtitle">Menunggu data perbandingan.</p></div>
+          </div>
+          <fieldset class="gp-local-filters" data-gp-filter-table="npp" aria-label="Filter tabel NPP" disabled>
+            <input type="search" data-gp-search="npp" placeholder="Cari NPP / pembina / kantor..." aria-label="Cari NPP, pembina, atau kantor" />
+            <select data-gp-progress="npp" aria-label="Filter progres NPP"><option value="ALL">Semua Progres</option><option value="decreased">Beban Berkurang</option><option value="increased">Beban Bertambah</option><option value="unchanged">Beban Tetap</option></select>
+            <button type="button" class="gp-local-reset" data-gp-reset-filter="npp" aria-label="Reset filter tabel NPP" title="Reset filter tabel NPP">&#8634;</button>
+          </fieldset>
+          <div class="table-wrap"><table class="gp-npp-table"><thead id="gpNppHead"></thead><tbody id="gpNppBody"><tr><td colspan="5">Memuat data...</td></tr></tbody><tfoot id="gpNppFoot"></tfoot></table></div>
+          <nav id="gpNppPagination" class="gp-pagination" aria-label="Halaman tabel NPP"></nav>
+        </article>
+        <article class="panel gp-table-panel">
+          <div class="panel-head">
+            <div><h2>Progres per Pembina</h2><p id="gpPembinaSubtitle">Menunggu data perbandingan.</p></div>
+          </div>
+          <fieldset class="gp-local-filters" data-gp-filter-table="pembina" aria-label="Filter tabel pembina" disabled>
+            <input type="search" data-gp-search="pembina" placeholder="Cari pembina / kantor..." aria-label="Cari pembina atau kantor" />
+            <select data-gp-progress="pembina" aria-label="Filter progres pembina"><option value="ALL">Semua Progres</option><option value="decreased">Beban Berkurang</option><option value="increased">Beban Bertambah</option><option value="unchanged">Beban Tetap</option></select>
+            <button type="button" class="gp-local-reset" data-gp-reset-filter="pembina" aria-label="Reset filter tabel pembina" title="Reset filter tabel pembina">&#8634;</button>
+          </fieldset>
+          <div class="table-wrap"><table class="gp-pembina-table"><thead id="gpPembinaHead"></thead><tbody id="gpPembinaBody"><tr><td>Memuat data...</td></tr></tbody><tfoot id="gpPembinaFoot"></tfoot></table></div>
+          <nav id="gpPembinaPagination" class="gp-pagination" aria-label="Halaman tabel pembina"></nav>
+        </article>
+        </section>
+      </main>
+    </div>
+    <script>
+      window.PROFILER_CONFIG = {
+        subject: "TK Aktif",
+        lockedKanwil: "905",
+        combineContactCompleteness: true,
+        dataOnly: true,
+        autoSourceUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtw4zahkq1MPDzwQJDjWRDdUN4ffG8O4aokdiIBvxh_YKvxnQ6-hNpTQXkQoidX8TrHZ0bku-VJE4K/pub?gid=1388056701&single=true&output=csv",
+        previousSourceUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQtw4zahkq1MPDzwQJDjWRDdUN4ffG8O4aokdiIBvxh_YKvxnQ6-hNpTQXkQoidX8TrHZ0bku-VJE4K/pub?gid=617502549&single=true&output=csv",
+      };
+    </script>
+    <script src="gerakan-keypass.js" data-view="progress"></script>
+  </body>
+</html>

@@ -99,6 +99,24 @@
   color: #c62828;
 }
 
+.sidebar .nav-priority-group > .nav-group-toggle {
+  min-height: 44px;
+  margin: 0 0 4px;
+  padding: 9px 8px;
+  border: 1px solid #efb4b4;
+  border-left: 4px solid #c62828;
+  border-radius: 7px;
+  background: #ffebeb;
+  color: #a51d1d;
+  font-size: 12px;
+  text-transform: none;
+}
+.sidebar .nav-priority-group > .nav-group-toggle.active,
+.sidebar .nav-priority-group > .nav-group-toggle:hover { background: #c62828; color: #fff; border-color: #c62828; }
+.sidebar .nav-priority-group .nav-group-toggle .nav-icon { background: #fff; color: #c62828; }
+.sidebar .nav-priority-group .nav-chevron { margin-left: auto; order: 3; color: currentColor; }
+.sidebar .nav-priority-group .nav-group-items a.active { border-color: #efb4b4; background: #fff1f1; color: #a51d1d; }
+
 .pemadanan-three-panels {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

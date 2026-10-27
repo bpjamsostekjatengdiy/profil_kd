@@ -2,6 +2,7 @@
   const salt = "39ad607a4185c169361ef889ae32acd5";
   const expectedHash = "0298e37a4f57d453adfbd24e663b440294df5366990cfede8372af4d67e483dd";
   const iterations = 210000;
+  const progressView = document.currentScript?.dataset.view === "progress";
   const form = document.querySelector("#gerakanAccessForm");
   const input = document.querySelector("#gerakanKeypass");
   const submit = document.querySelector("#gerakanAccessSubmit");
@@ -57,7 +58,7 @@
       submit.textContent = "Membuka halaman...";
       await loadScript("sidebar.js");
       await loadScript("pkbu.js");
-      await loadScript("gerakan-pemadanan-ui.js");
+      await loadScript(progressView ? "gerakan-progres.js" : "gerakan-pemadanan-ui.js");
       access.hidden = true;
       content.hidden = false;
       document.querySelector("#cabangFilter")?.focus();

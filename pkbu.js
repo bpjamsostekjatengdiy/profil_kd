@@ -1596,11 +1596,11 @@ function validateLoadedData(headers, rows) {
   return mapping;
 }
 
-async function handleFiles(files) {
+async function handleFiles(files, preloaded = null) {
   try {
     const loadedFiles = [];
     for (const file of files) {
-      const loaded = await readUploadedFile(file);
+      const loaded = preloaded && files.length === 1 ? preloaded : await readUploadedFile(file);
       const qualityData = convertQualityRows(loaded.headers, loaded.rows);
       const headers = qualityData?.headers ?? loaded.headers;
       const rows = qualityData?.rows ?? loaded.rows;
@@ -1828,8 +1828,36 @@ document.querySelector("#branchPembinaFilter")?.addEventListener("change", (even
   render();
 });
 
-bindEvents();
-window.addEventListener("afterprint", unlockFiltersAfterPrint);
+if (!profilerConfig.dataOnly) {
+  bindEvents();
+  window.addEventListener("afterprint", unlockFiltersAfterPrint);
+}
+
+async function fetchProfilerSheet(sourceUrl = profilerConfig.autoSourceUrl) {
+  const requiredColumns = ["KODE_KANTOR", "NPP", "NIK_QUALITY"];
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const url = new URL(sourceUrl);
+      url.searchParams.set("_", String(Date.now()));
+      const response = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(45000) });
+      if (!response.ok) throw new Error(`Spreadsheet belum dapat diakses (HTTP ${response.status}).`);
+      const text = (await response.text()).replace(/^\uFEFF/, "").trimStart();
+      if (!text || /^\s*</.test(text)) {
+        throw new Error("Spreadsheet belum mengirim data CSV. Pastikan sheet TK aktif update sudah dipublikasikan.");
+      }
+      const parsed = parseDelimited(text);
+      const headers = parsed.headers.map((header) => normalizeHeader(header).toUpperCase().replace(/ /g, "_"));
+      const missing = requiredColumns.filter((column) => !headers.includes(column));
+      if (missing.length) throw new Error(`Sheet TK aktif update belum memuat kolom: ${missing.join(", ")}.`);
+      const rows = parsed.rows.map((row) => Object.fromEntries(parsed.headers.map((header, index) => [headers[index], row[header]])));
+      return { text, headers, rows };
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await new Promise((resolve) => window.setTimeout(resolve, 1000));
+    }
+  }
+}
+
 async function initializeProfiler() {
   if (!profilerConfig.autoSourceUrl) {
     await restoreSavedData();
@@ -1840,15 +1868,9 @@ async function initializeProfiler() {
   els.sourceNote.textContent = "Memuat data spreadsheet...";
   els.fileInput.disabled = true;
   try {
-    const response = await fetch(profilerConfig.autoSourceUrl, { cache: "no-store" });
-    if (!response.ok) throw new Error("Spreadsheet belum dapat diakses. Coba muat ulang halaman.");
-    const text = (await response.text()).replace(/^\uFEFF/, "");
-    const header = text.split(/\r?\n/, 1)[0];
-    if (/^\s*</.test(text) || !["KODE_KANTOR", "NPP", "NIK_QUALITY"].every((column) => header.includes(column))) {
-      throw new Error("Struktur sheet TK aktif update tidak sesuai.");
-    }
+    const loaded = await fetchProfilerSheet();
     const name = profilerConfig.autoSourceName || "data.csv";
-    await handleFiles([new File([text], name, { type: "text/csv" })]);
+    await handleFiles([new File([loaded.text], name, { type: "text/csv" })], loaded);
     if (state.fileName === name && state.rows.length) {
       els.sourceNote.textContent = `${profilerConfig.autoSourceLabel || "Sumber: spreadsheet"} | ${els.sourceNote.textContent}`;
     }
@@ -1860,4 +1882,4 @@ async function initializeProfiler() {
   }
 }
 
-initializeProfiler();
+if (!profilerConfig.dataOnly) initializeProfiler();
